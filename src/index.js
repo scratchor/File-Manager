@@ -4,8 +4,8 @@ import { getUserName } from "./utils.js";
 import { emitter } from "./emitter.js";
 import state from "./state.js";
 
-process.on("uncaughtException", (err) => {
-  console.error("Operation failed", err);
+process.on("uncaughtException", () => {
+  console.error("Operation failed");
   emitter.emit("logDir");
 });
 
@@ -15,7 +15,6 @@ try {
 
   const rl = readline.createInterface({
     input: process.stdin,
-    // output: process.stdout,
   });
 
   rl.setPrompt("Please, enter you command\n");
@@ -33,12 +32,6 @@ try {
       emitter.emit("logDir");
     }
   });
-
-  // rl.question("What do you think of Node.js? ", (answer) => {
-  //   // TODO: Log the answer in a database
-  //   // console.log(`Thank you for your valuable feedback: ${answer}`);
-  //   // rl.close();
-  // });
-} catch (err) {
-  console.error("Try_Catch_Operation failed", err);
+} catch {
+  console.error("Operation failed");
 }
