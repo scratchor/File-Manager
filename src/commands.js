@@ -8,6 +8,8 @@ import {
   copyFile,
   moveFile,
   removeFile,
+  chooseOsInfo,
+  calcHash,
 } from "./utils.js";
 
 export default {
@@ -24,4 +26,6 @@ export default {
   mv: async (pathToFile, pathToNewDirectory) =>
     await moveFile(pathToFile, pathToNewDirectory),
   rm: async (pathToFile) => await removeFile(pathToFile),
+  hash: async (pathToFile) => await calcHash(pathToFile),
+  os: async (cmdKey) => await chooseOsInfo(cmdKey),
 };

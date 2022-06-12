@@ -2,7 +2,9 @@ import * as path from "path";
 import state from "./state.js";
 import { readdir, stat, access, open, rename, unlink } from "fs/promises";
 import { constants, createReadStream, createWriteStream } from "fs";
-import { pipeline } from "stream";
+import { pipeline } from "stream/promises";
+import os from "os";
+const { createHash } = await import("crypto");
 
 export const getUserName = () =>
   process.argv.slice(2).join().match(/=+\w+/g).shift().replace("=", "");
@@ -132,11 +134,7 @@ export const copyFile = async (pathToFile, pathToNewDirectory) => {
     const readStream = createReadStream(oldPath);
     const writeStream = createWriteStream(newPath);
 
-    await pipeline(readStream, writeStream, (err) => {
-      if (err) {
-        console.error("Pipeline failed.", err);
-      }
-    });
+    await pipeline(readStream, writeStream);
   }
 };
 
@@ -148,4 +146,48 @@ export const moveFile = async (pathToFile, pathToNewDirectory) => {
 export const removeFile = async (pathToFile) => {
   const finalPath = preparePath(path.normalize(pathToFile));
   await unlink(finalPath);
+};
+
+export const calcHash = async (pathToFile) => {
+  const filePath = preparePath(path.normalize(pathToFile));
+  const pathStat = await stat(filePath);
+  const isUserHaveAccess = await checkAccess(filePath);
+
+  if (pathStat.isFile() && isUserHaveAccess) {
+    const hash = createHash("sha256");
+    const inputFileStream = createReadStream(filePath);
+
+    await pipeline(inputFileStream, hash.setEncoding("hex"), process.stdout);
+  }
+};
+
+export const showCpusInfo = (cpuData) => {
+  console.log(`Overall amount of CPUS: ${cpuData.length}`);
+  cpuData.forEach((e) => {
+    console.log(`Model: ${e.model}, clock rate: ${e.speed * 0.001}GHz`);
+  });
+};
+
+export const chooseOsInfo = async (cmdKey) => {
+  const infoKey = cmdKey.replace(/--/, "");
+
+  switch (infoKey) {
+    case "EOL":
+      console.log(os.EOL);
+      break;
+    case "cpus":
+      showCpusInfo(os.cpus());
+      break;
+    case "homedir":
+      console.log(os.homedir());
+      break;
+    case "username":
+      console.log(os.userInfo().username);
+      break;
+    case "architecture":
+      console.log(os.arch());
+      break;
+    default:
+      console.error("Invalid input");
+  }
 };
